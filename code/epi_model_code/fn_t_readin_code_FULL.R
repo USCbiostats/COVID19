@@ -18,9 +18,9 @@ assign("mu.0",1)
 assign("mu.1", R0_redux1)
 assign("mu.2", R0_redux2)
 assign("mu.3", R0_redux3) #0.31)
-assign("mu.4", .75*R0_redux3)
+assign("mu.4", 0.75*R0_redux3)
 #assign("mu.4",(mu.3+mu.2)/2)
-#assign("mu.5",mu.2)
+assign("mu.5", 0.58*R0_redux3)
 
 mu_y <- as.vector(length(Beta_t))
 for (i in 1:length(Beta_t)){
@@ -62,8 +62,11 @@ Beta_y<- c(
   Br.function(R0.in<-R0_y[20], r.in<-r2, Alpha.in<-Alpha2),
   Br.function(R0.in<-R0_y[21], r.in<-r2, Alpha.in<-Alpha2),
   Br.function(R0.in<-R0_y[22], r.in<-r2, Alpha.in<-Alpha2),
-  Br.function(R0.in<-R0_y[23], r.in<-r2, Alpha.in<-Alpha2)
+  Br.function(R0.in<-R0_y[23], r.in<-r2, Alpha.in<-Alpha2),
+  Br.function(R0.in<-R0_y[24], r.in<-r2, Alpha.in<-Alpha2)
 )
+
+#print(paste0("Dimensions of Beta_y",dim(Beta_y)))
 
 ##########################################################################################
 ## Evaluate r_t from readin

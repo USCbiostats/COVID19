@@ -241,16 +241,17 @@ model.output.to.plot.SIM <- function(ABC.out.mat, par.vec.length, iter, time.ste
 ## The cumulative number of cases at all (trusted) time points
 ###################################################################################################
 
-sum.stats.SIMTEST <- function(data,include.R=TRUE){
+sum.stats.SIMTEST <- function(data,last_date_data){
 
   no_obs <- nrow(data)
+  last_date <- as.numeric(as.Date(last_date_data) - as.Date("2020-03-01"))
 
   # Which values of variables to consider
   I.trust.n <- c(10:no_obs)  # The first 9 days of illness cases are unreliable/unavailable
-  H.trust.n <- c(17:no_obs)  # The first 16 days of hospitalizations are unreliable/unavailable
-  V.trust.n <- c(19:no_obs)  # The first 18 days of ventilation are unreliable/unavailable
+  H.trust.n <- c(17:last_date)  # The first 16 days of hospitalizations are unreliable/unavailable
+  V.trust.n <- c(19:last_date)  # The first 18 days of ventilation are unreliable/unavailable
   D.trust.n <- c(18:no_obs)  # The first 17 days of mortality are unreliable/unavailable
-  Hnew.trust.n <- c(19:no_obs) # The first 18 days of new hospitalizations are unreliable/unavailable
+  Hnew.trust.n <- c(19:last_date) # The first 18 days of new hospitalizations are unreliable/unavailable
   Dnew.trust.n <- c(28:no_obs) # The first 28 days of new deaths are unreliable/unavailable
   R.trust.n <- c(0:35)
 
@@ -264,10 +265,7 @@ sum.stats.SIMTEST <- function(data,include.R=TRUE){
 
   # Which variables to consider
 
-  if (include.R == TRUE){summarystats = c(ss.I, ss.H, ss.V, ss.D, ss.Hnew, ss.Dnew, ss.R) }
-  else if (include.R == FALSE)
-  {summarystats = c(ss.I, ss.H, ss.V, ss.D, ss.Hnew, ss.Dnew) }
-
+  summarystats = c(ss.I, ss.H, ss.V, ss.D, ss.Hnew, ss.Dnew)
 
   return(summarystats)
 }
@@ -277,7 +275,7 @@ sum.stats.SIMTEST <- function(data,include.R=TRUE){
 ## SIMULATION MODEL FUNCTION TO COMPUTE FOR ABC ALGORITHM
 ## A function implementing the model to be simulated
 ## It must take as arguments a vector of model parameter values par
-## and it must return a vector of summary statistics
+## and it must return a vector of summary statistics (compartmental model variables from simulation)
 ###################################################################################################
 
 model.1sim.stats.no.R <- function(par){
@@ -305,13 +303,18 @@ model.1sim.stats.no.R <- function(par){
   # Beta_y[length.B] <- Beta_y[length.B]*0.9
   # Beta_y[length.B] <- Beta_y[length.B-1]*0.9
 
+  # print(paste0("Dimensions of Beta_y",(Beta_y)))
+  # print(paste0("Dimensions of Beta_t",(Beta_t)))
+  # print(paste0("Dimensions of r_y",(r_y)))
+  # print(paste0("no_obs",(no_obs)))
+
   ### GENERATE SIMULATION
   x <- seihqdr_generator(Alpha_t=Alpha_t, Alpha_y=Alpha_y, Kappa_t=Kappa_t, Kappa_y=Kappa_y, Delta_t=Delta_t, Delta_y=Delta_y, Beta_t=Beta_t, Beta_y=Beta_y, r_t=r_t, r_y=r_y, S_ini=1e7, E_ini=10, p_QV=p_V)
   st <- start_time
   one_sim <- as.data.frame(x$run(0:(st+no_obs))[(st+1):(st+no_obs),])
 
   ### SUMMARY STATISTICS COMPUTED ON MODEL OUTPUT:
-  summarymodel <- sum.stats.SIMTEST(one_sim,include.R=FALSE)
+  summarymodel <- sum.stats.SIMTEST(one_sim,last_date_data = "2021-01-18")
 
   return(summarymodel)
 }

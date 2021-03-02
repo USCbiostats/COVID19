@@ -93,7 +93,7 @@ code.scenarios.dir=here("code/scenarios_code/")
 ```{r options, include=FALSE}
 print.output <- FALSE
 days.truncate <- 0
-endDatePlotGlobal <- as.Date("2021-02-16")
+endDatePlotGlobal <- as.Date("2021-03-16")
 ```
 
 
@@ -134,7 +134,7 @@ no_obs <- nrow(latest_data)
 
 <!--Model Fitting-->
 
-```{r include=FALSE}
+```{r model-fitting-code, include=FALSE}
 
 ## SOURCE PRIOR PARAMETERS
 ## Provides output in form of a prior.par list
@@ -144,15 +144,14 @@ source(prior_param_input)
 # prior.par
 
 ## SUMMARY STATISTICS COMPUTED ON DATA
-summarydata <- sum.stats.SIMTEST(latest_data,include.R = FALSE)
+summarydata <- sum.stats.SIMTEST(latest_data,last_date_data = "2021-01-18") # function sum.stats.SIMTEST from supporting_functions
 model.R <- model.1sim.stats.no.R  # From supporting_functions
 
 ### NUMBER OF OUTPUTS
-# n_calibration = 10000
-# n_rec = 2000
-
 n_calibration = 1000
 n_rec = 100
+# n_calibration = 10000
+# n_rec = 2000
 
 ## FIT MODEL
 ABC_out<-ABC_mcmc(method="Marjoram",model=model.R,prior=prior.par,
@@ -177,7 +176,7 @@ par.vec.length <- nrow(ABC_out$param)
 ABC.out.mat <- ABC_out$param
 par.vec.length <- nrow(ABC_out$param)
 iter <- 10
-time.steps <- 400
+time.steps <- 500
 vars.to.plot <- vars.plus.R
 
 ## FUNCTION MODEL.OUTPUT.TO.PLOT.SIM
