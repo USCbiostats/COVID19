@@ -126,7 +126,7 @@ Delta_t <- Alpha_t
 Delta_y_chr <- alpha_t_readin$Delta_y
 assign("Delta1",Delta1)
 assign("Delta2", Delta2)
-assign("Delta3", Delta2*1.3)
+assign("Delta3", Delta2*1.1)
 
 Delta_y <- as.vector(length(Alpha_t))
 for (i in 1:length(Alpha_t)){
