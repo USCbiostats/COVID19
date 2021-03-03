@@ -246,35 +246,10 @@ percent.in10days.TOT <- get.current.percent(traj.CI=traj.0, date.selected=date.s
 
 ```
 
-## Percentage of LAC population currently infected 
-
-### % LAC population currently infected: observed + estimated unobserved infections
-
-* **The percentage infected on `r Sys.Date()` is estimated at `r percent.current.TOT`.**
-
-* **The percentage infected on `r date.selected`, *under the assumption of the infectious rate as of `r Sys.Date()`*, is estimated at `r percent.in10days.TOT`.**
-
-This plot shows the model-estimated total percentage (%) of the LAC population infected, accounting for **both observed and unobserved cases**.
-
-```{r}
-ggplotly(plot.percent.TOT)
-```
-
-### % LAC population currently infected: observed infections only
-
-* **The percentage infected on `r Sys.Date()` is estimated at `r percent.current.OBS`.**
-
-* **The percentage infected on `r date.selected`, *under the assumption of the infectious rate as of `r Sys.Date()`*, is estimated at `r percent.in10days.OBS`.**
-
-This plot shows the model-estimated total percentage (%) of the LAC population infected, accounting only for **confirmed observed cases**.
-
-```{r}
-ggplotly(plot.percent.OBS)
-```
 
 
-
-## Estimated epidemic parameters {.tabset}
+<!--Estimated epidemic parameters
+-->
 
 ```{r include=FALSE}
 
@@ -296,23 +271,6 @@ if (print.output==TRUE){
 }
 
 ```
-
-### Reproductive Number, $R(t)$
-
-This plot shows the time-varying Effective Reproductive Number R(t). This accounts for the fraction of the population that is assumed to be immune to reinfection through infection-acquired immunity. It does not account for the fraction of the population that has been vaccinated, although this is currently very small and would not make a sizeable impact.
-
-```{r}
-R_t_plot <- Fig3.plots[[1]]
-ggplotly(R_t_plot)
-```
-
-### Fraction of Observed Infections, $r(t)$
-
-```{r}
-Fig3.plots[[2]]
-```
-
-{-}
 
 
 <!---
@@ -387,6 +345,13 @@ plot.Dnew <- plot.model.single(traj.CI=traj.0, data.in=data.in, init.date.data="
 * **Cumulative = running total over time**
 * Black dots depict COVID-19 data
 
+### New observed infections (with data)
+
+```{r}
+ggplotly(plot.I.new)
+```
+
+
 ### Current estimated total infections
 
 ```{r width=3}
@@ -397,12 +362,6 @@ ggplotly(plot.Itot)
 
 ```{r}
 ggplotly(plot.I)
-```
-
-### New observed infections (with data)
-
-```{r}
-ggplotly(plot.I.new)
 ```
 
 ### Current observed and total infections (together)
@@ -421,6 +380,12 @@ plot.out.H.I[[2]]
 * Black dots depict COVID-19 data
 * Dotted black line marks healthcare capacity limits
 
+### New deaths
+
+```{r}
+ggplotly(plot.Dnew)
+```
+
 ### Current in hospital
 
 ```{r}
@@ -431,12 +396,6 @@ ggplotly(plot.Htot)
 
 ```{r}
 ggplotly(plot.Q)
-```
-
-### New deaths
-
-```{r}
-ggplotly(plot.Dnew)
 ```
 
 ### Current hospitalizations, ventilations, and new deaths
@@ -524,6 +483,27 @@ Projections **under the assumption of the infectious rate as of `r Sys.Date()`**
 plot.all.variables.plus.15.days
 ```
 
+{-}
+
+## Estimated epidemic parameters {.tabset}
+
+### Reproductive Number, $R(t)$
+
+This plot shows the time-varying Effective Reproductive Number R(t). This accounts for the fraction of the population that is assumed to be immune to reinfection through infection-acquired immunity. It does not account for the fraction of the population that has been vaccinated, although this is currently very small and would not make a sizeable impact.
+
+```{r}
+R_t_plot <- Fig3.plots[[1]]
+ggplotly(R_t_plot)
+```
+
+### Fraction of Observed Infections, $r(t)$
+
+```{r}
+Fig3.plots[[2]]
+```
+
+{-}
+
 
 ## Tables: Parameter estimates {.tabset}
 
@@ -602,6 +582,32 @@ CFR.IFR.plots.out[[1]]
 CFR.IFR.plots.out[[2]]
 ```
 
+
+## Percentage of LAC population currently infected 
+
+### % LAC population currently infected: observed + estimated unobserved infections
+
+* **The percentage infected on `r Sys.Date()` is estimated at `r percent.current.TOT`.**
+
+* **The percentage infected on `r date.selected`, *under the assumption of the infectious rate as of `r Sys.Date()`*, is estimated at `r percent.in10days.TOT`.**
+
+This plot shows the model-estimated total percentage (%) of the LAC population infected, accounting for **both observed and unobserved cases**.
+
+```{r}
+ggplotly(plot.percent.TOT)
+```
+
+### % LAC population currently infected: observed infections only
+
+* **The percentage infected on `r Sys.Date()` is estimated at `r percent.current.OBS`.**
+
+* **The percentage infected on `r date.selected`, *under the assumption of the infectious rate as of `r Sys.Date()`*, is estimated at `r percent.in10days.OBS`.**
+
+This plot shows the model-estimated total percentage (%) of the LAC population infected, accounting only for **confirmed observed cases**.
+
+```{r}
+ggplotly(plot.percent.OBS)
+```
 
 
 

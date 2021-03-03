@@ -666,6 +666,7 @@ plot.param.t <- function(ABC_out=ABC_out, endDatePlot=endDatePlot){
   Kappa2.CI <- ABC.par.CI[[12]]
   Delta1.CI <- ABC.par.CI[[5]]
   Delta2.CI <- ABC.par.CI[[10]]
+  Delta3.CI <- 1.25*Delta2.CI
 
   # GET ORDER OF VALUES
   start_time = round(mean(ABC.par[,3]))
@@ -692,6 +693,7 @@ plot.param.t <- function(ABC_out=ABC_out, endDatePlot=endDatePlot){
   Delta.chr <- alpha_t_readin$Delta_y
   assign("Delta1",Delta1.CI)
   assign("Delta2", Delta2.CI)
+  assign("Delta3", Delta3.CI)
   Delta_plot <- format.4.plot(fn_t = Alpha.t, fn_y_chr = Delta.chr, fn.posterior.CI=Delta1.CI, fn.name="Delta_t" )
 
   # PLOTTING AKD
