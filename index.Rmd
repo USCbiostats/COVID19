@@ -12,10 +12,15 @@ editor_options:
   chunk_output_type: console
 ---
 
-**Note**: This version of the model does not include vaccinations. As of 2/25/2021 the [percentages of the Los Angeles County Population that have received vaccines](http://publichealth.lacounty.gov/media/coronavirus/vaccine/vaccine-dashboard.htm) are:
+<br>
+
+**Note**: This version of the model does not include vaccinations. As of 2/25/2021 the [percentages of the Los Angeles County population that have received vaccines](http://publichealth.lacounty.gov/media/coronavirus/vaccine/vaccine-dashboard.htm) are:
 
 - **6%** 1st and 2nd doses
 - **13.6%** 1st dose only
+
+<br>
+<br>
 
 <!--Initialize-->
 

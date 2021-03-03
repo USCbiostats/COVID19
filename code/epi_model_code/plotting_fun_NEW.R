@@ -666,7 +666,7 @@ plot.param.t <- function(ABC_out=ABC_out, endDatePlot=endDatePlot){
   Kappa2.CI <- ABC.par.CI[[12]]
   Delta1.CI <- ABC.par.CI[[5]]
   Delta2.CI <- ABC.par.CI[[10]]
-  Delta3.CI <- 1.2*Delta2.CI
+  Delta3.CI <- 1.1*Delta2.CI
 
   # GET ORDER OF VALUES
   start_time = round(mean(ABC.par[,3]))
