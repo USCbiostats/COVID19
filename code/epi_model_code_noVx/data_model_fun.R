@@ -33,48 +33,7 @@ latest_covid_data <- function(truncate=0){
 ########################################################################################
 
 ### IF PLOTTING ALL VARIABLES
-# all.variables <- c("S",
-#                    "I_detect_new",
-#                    "I",
-#                    "Idetectcum",
-#                    "Itot",
-#                    "Itotcum",
-#                    "H_new",
-#                    "Htot",
-#                    "Htotcum",
-#                    "Q",
-#                    "Qcum",
-#                    "V",
-#                    "Vcum",
-#                    "D_new",
-#                    "D",
-#                    "R",
-#                    "Vx",
-#                    "Vx_new"
-# )
-
-all.variables <-  c("S",
-                       "I_detect_new",
-                       "I",
-                       "Idetectcum",
-                       "Itot",
-                       "Itotcum",
-                       "H_new",
-                       "Htot",
-                       "Htotcum",
-                       "Q",
-                       "Qcum",
-                       "V",
-                       "Vcum",
-                       "D_new",
-                       "D",
-                       "R_out",
-                       "Vx",
-                       "Vx_new",
-                       "R_vx",
-                    "R0_t")
-
-vars.minus.Vx <- c("S",
+all.variables <- c("S",
                    "I_detect_new",
                    "I",
                    "Idetectcum",
@@ -89,15 +48,10 @@ vars.minus.Vx <- c("S",
                    "Vcum",
                    "D_new",
                    "D",
-                   "R_out"
-                   ) 
+                   "R"
+)
 
-vars.plus.Vx <- all.variables[c(1:(length(all.variables)-1))]
-vars.plus.Vx.Rt <- all.variables
-
-#vars.correct.vx.dates <- c(vars.minus.Vx, "Vx.given", "Vx.given.tot","R0_t")
-vars.correct.vx.dates <- c(vars.minus.Vx, "Vx.given", "Vx.given.tot","Vx.given.65", "Vx.given.65.tot")
-
+vars.plus.R <- all.variables
 
 ### IF ONLY PLOTTING VARIABLES AGAINST DATA
 only.vars.with.data <- c(
@@ -168,7 +122,7 @@ var.format <- function(var.CI,use.mean.select){
 ## SPECIFYING EPIDEMIC MODEL TO BE SIMULATED AND SCENARIOS
 ########################################################################################
 
-correlated.param.SIM <- function(ABC.out.mat,vx.delay,vx.coverage,iter,time.steps) {
+correlated.param.SIM <- function(ABC.out.mat,iter,time.steps) {
 
   TEST.out <- vector("list", nrow(ABC.out.mat))
 
@@ -190,36 +144,11 @@ correlated.param.SIM <- function(ABC.out.mat,vx.delay,vx.coverage,iter,time.step
     Kappa2 <- ABC.out.mat[idx,12]
     r2 <- ABC.out.mat[idx,13]
     R0_redux3 <- ABC.out.mat[idx,14]
-    Delta3 <- ABC.out.mat[idx,15]
-    
-    
 
     ### BRING IN BETA_T ALPHA_T KAPPA_T DELTA_T FUNCTIONS
     fn_t_readin_code <- path(code.paper.dir, "fn_t_readin_code_FULL.R")
     source(fn_t_readin_code, local=TRUE)
 
-    # nvx_t <- nvx_t + vx.delay
-    
-    ## Here inputing logic check to keep the number vaccinated less than the coverage ratio and or population of LAC
-
-    # if (is.null(vx.coverage)) {vx.coverage = .8}
-    # 
-    # # Expand the nvx(t,y) function over each time step
-    # interpolate.out <- approx(x=nvx_t, y=nvx_y, method="constant", n = max(nvx_t)-min(nvx_t)+1)
-    # nvx_t.feas <- interpolate.out$x
-    # nvx_y.feas <- interpolate.out$y
-    # nvx_y.feas_cum <- cumsum(nvx_y.feas)
-    # 
-    # # Implementing logic check    
-    # for (time in 1:length(nvx_y.feas)){
-    #   if (nvx_y.feas_cum[time] > vx.coverage*1e7-100000 ) {
-    #     nvx_y.feas[time] <- 0
-    #   }
-    # }
-    
-    
-    # max_nvx <- max(cumsum(nvx_y.feas))
-    
     # print("Beta_t_dates")
     # print(Beta_t_dates)
     # print("R0_y")
@@ -231,33 +160,11 @@ correlated.param.SIM <- function(ABC.out.mat,vx.delay,vx.coverage,iter,time.step
     # print(Alpha_t_dates)
 
     ## COMPILE
-    x <- Vx_generator(Alpha_t=Alpha_t, Alpha_y=Alpha_y, Kappa_t=Kappa_t, Kappa_y=Kappa_y, Delta_t=Delta_t, Delta_y=Delta_y, Beta_t=Beta_t, Beta_y=Beta_y, r_t=r_t, r_y=r_y, nvx_t=nvx_t.feas, nvx_y=nvx_y.feas, S_ini=1e7, E_ini=10, p_QV=p_V)
-    
-    ## Prepare to add scenario inputs to output DF
-    interpolate.out <- approx(x=Beta_t, y=R0_y, method="constant", n = max(Beta_t)-min(Beta_t)+1)
-    R0_add <- as.data.frame(interpolate.out)
-    colnames(R0_add) <- c("step","R0_t")
-    
-    nvx_t.given <- nvx_t.feas - vx.delay
-    #vx.given.df <- as.data.frame(cbind(nvx_t.given, nvx_y.feas, cumsum(nvx_y.feas), nvx_65_y.feas, nvx_65_y.feas.cum))
-    #colnames(vx.given.df) <- c("step", "Vx.given", "Vx.given.tot", "Vx.given.65", "Vx.given.65.tot")
-    
-    vx.given.df <- as.data.frame(cbind(nvx_t.given, nvx_y.feas, cumsum(nvx_y.feas), nvx_y.feas.65, nvx_y.feas_cum.65))
-    colnames(vx.given.df) <- c("step", "Vx.given", "Vx.given.tot", "Vx.given.65", "Vx.given.65.tot")
-    
-    # Simulate a number of time steps accounting for model start and vaccine delay
-    time.steps.simulate <- time.steps + 45
-    
+    x <- seihqdr_generator(Alpha_t=Alpha_t, Alpha_y=Alpha_y, Kappa_t=Kappa_t, Kappa_y=Kappa_y, Delta_t=Delta_t, Delta_y=Delta_y, Beta_t=Beta_t, Beta_y=Beta_y, r_t=r_t, r_y=r_y, S_ini=1e7, E_ini=10, p_QV=p_V)
+
     ## SIMULATE
-    TEST<-as.data.frame(plyr::rdply(iter, x$run(0:time.steps.simulate),.id="iter"))
-    
-    #TEST<-as.data.frame(plyr::rdply(iter, x$run(0:time.steps),.id="iter"))
-    
-    ## ADD R0 PLOT
-    TEST <- merge(TEST,R0_add,by="step")
-    TEST <- merge(TEST,vx.given.df,by="step")
-    
-    
+    TEST<-as.data.frame(plyr::rdply(iter, x$run(0:time.steps),.id="iter"))
+
     ## BIND INCLUDING OFFSETING OBSERVED DATA BY START DATE
     TEST.out[[idx]] <- cbind(data.frame(par.id = idx, date = -start_time+TEST$step), TEST)
   }
@@ -280,13 +187,13 @@ correlated.param.SIM <- function(ABC.out.mat,vx.delay,vx.coverage,iter,time.step
 # time.steps <- 300
 # vars.to.plot <- vars.plus.R
 
-model.output.to.plot.SIM <- function(ABC.out.mat, vx.delay, vx.coverage, par.vec.length, iter, time.steps, vars.to.plot) {
+model.output.to.plot.SIM <- function(ABC.out.mat, par.vec.length, iter, time.steps, vars.to.plot) {
 
   library(data.table)
   init.date.data="2020-03-01"
 
   ## MODEL OUTPUT TO PLOT
-  TEST.out <- correlated.param.SIM(ABC.out.mat[1:par.vec.length,], vx.delay=vx.delay, vx.coverage=vx.coverage, iter=iter,time.steps=time.steps)
+  TEST.out <- correlated.param.SIM(ABC.out.mat[1:par.vec.length,],iter=iter,time.steps=time.steps)
 
   ### Add CFR and IFR to the list (EXTRA STEP NOW THAT THIS IS BEING USED ALSO FOR summary_table)
   traj <- dplyr::mutate(TEST.out, Itot=I+A, CFRobs=(D/Idetectcum), CFRactual=(D/(Itotcum)) )
@@ -334,47 +241,11 @@ model.output.to.plot.SIM <- function(ABC.out.mat, vx.delay, vx.coverage, par.vec
 ## The cumulative number of cases at all (trusted) time points
 ###################################################################################################
 
-## When no dates are missing
-
-sum.stats.SIMTEST.NOMISSING <- function(data,include.R=TRUE){
-
-  no_obs <- nrow(data)
-
-  # Which values of variables to consider
-  I.trust.n <- c(10:no_obs)  # The first 9 days of illness cases are unreliable/unavailable
-  H.trust.n <- c(17:no_obs)  # The first 16 days of hospitalizations are unreliable/unavailable
-  V.trust.n <- c(19:no_obs)  # The first 18 days of ventilation are unreliable/unavailable
-  D.trust.n <- c(18:no_obs)  # The first 17 days of mortality are unreliable/unavailable
-  Hnew.trust.n <- c(19:no_obs) # The first 18 days of new hospitalizations are unreliable/unavailable
-  Dnew.trust.n <- c(28:no_obs) # The first 28 days of new deaths are unreliable/unavailable
-  R.trust.n <- c(0:35)
-
-  ss.I <- data$Idetectcum[I.trust.n]
-  ss.H <- data$Htotcum[H.trust.n]
-  ss.V <- data$Vcum[V.trust.n]
-  ss.D <- data$D[D.trust.n]
-  ss.Hnew <- data$H_new[Hnew.trust.n]
-  ss.Dnew <- data$D_new[Dnew.trust.n]
-  ss.R <- data$R[R.trust.n]
-
-  # Which variables to consider
-
-  if (include.R == TRUE){summarystats = c(ss.I, ss.H, ss.V, ss.D, ss.Hnew, ss.Dnew, ss.R) }
-  else if (include.R == FALSE)
-  {summarystats = c(ss.I, ss.H, ss.V, ss.D, ss.Hnew, ss.Dnew) }
-
-
-  return(summarystats)
-}
-
-###################################################################################################
-## When some dates are missing at the end of the list
-
 sum.stats.SIMTEST <- function(data,last_date_data){
-  
+
   no_obs <- nrow(data)
   last_date <- as.numeric(as.Date(last_date_data) - as.Date("2020-03-01"))
-  
+
   # Which values of variables to consider
   I.trust.n <- c(10:no_obs)  # The first 9 days of illness cases are unreliable/unavailable
   H.trust.n <- c(17:last_date)  # The first 16 days of hospitalizations are unreliable/unavailable
@@ -383,7 +254,7 @@ sum.stats.SIMTEST <- function(data,last_date_data){
   Hnew.trust.n <- c(19:last_date) # The first 18 days of new hospitalizations are unreliable/unavailable
   Dnew.trust.n <- c(28:no_obs) # The first 28 days of new deaths are unreliable/unavailable
   R.trust.n <- c(0:35)
-  
+
   ss.I <- data$Idetectcum[I.trust.n]
   ss.H <- data$Htotcum[H.trust.n]
   ss.V <- data$Vcum[V.trust.n]
@@ -391,19 +262,20 @@ sum.stats.SIMTEST <- function(data,last_date_data){
   ss.Hnew <- data$H_new[Hnew.trust.n]
   ss.Dnew <- data$D_new[Dnew.trust.n]
   ss.R <- data$R[R.trust.n]
-  
+
   # Which variables to consider
-  
+
   summarystats = c(ss.I, ss.H, ss.V, ss.D, ss.Hnew, ss.Dnew)
-  
+
   return(summarystats)
 }
+
 
 ###################################################################################################
 ## SIMULATION MODEL FUNCTION TO COMPUTE FOR ABC ALGORITHM
 ## A function implementing the model to be simulated
 ## It must take as arguments a vector of model parameter values par
-## and it must return a vector of summary statistics
+## and it must return a vector of summary statistics (compartmental model variables from simulation)
 ###################################################################################################
 
 model.1sim.stats.no.R <- function(par){
@@ -422,13 +294,6 @@ model.1sim.stats.no.R <- function(par){
   Kappa2 <- par[12]
   r2 <- par[13]
   R0_redux3 <- par[14]
-  Delta3 <- par[15]
-  
-  # vx0 <- 0
-  # vx1 <- 0
-  # vx2 <- 0
-  # vx3 <- 0
-  # vx4 <- 0
 
   ### BRING IN BETA_T ALPHA_T KAPPA_T DELTA_T FUNCTIONS
   fn_t_readin_code <- path(code.paper.dir, "fn_t_readin_code_FULL.R")
@@ -438,14 +303,18 @@ model.1sim.stats.no.R <- function(par){
   # Beta_y[length.B] <- Beta_y[length.B]*0.9
   # Beta_y[length.B] <- Beta_y[length.B-1]*0.9
 
+  # print(paste0("Dimensions of Beta_y",(Beta_y)))
+  # print(paste0("Dimensions of Beta_t",(Beta_t)))
+  # print(paste0("Dimensions of r_y",(r_y)))
+  # print(paste0("no_obs",(no_obs)))
+
   ### GENERATE SIMULATION
-  #x <- seihqdr_generator(Alpha_t=Alpha_t, Alpha_y=Alpha_y, Kappa_t=Kappa_t, Kappa_y=Kappa_y, Delta_t=Delta_t, Delta_y=Delta_y, Beta_t=Beta_t, Beta_y=Beta_y, r_t=r_t, r_y=r_y, S_ini=1e7, E_ini=10, p_QV=p_V)
-  x <- Vx_generator(Alpha_t=Alpha_t, Alpha_y=Alpha_y, Kappa_t=Kappa_t, Kappa_y=Kappa_y, Delta_t=Delta_t, Delta_y=Delta_y, Beta_t=Beta_t, Beta_y=Beta_y, r_t=r_t, r_y=r_y, nvx_t=nvx_t.feas, nvx_y=nvx_y.feas, S_ini=1e7, E_ini=10, p_QV=p_V)
+  x <- seihqdr_generator(Alpha_t=Alpha_t, Alpha_y=Alpha_y, Kappa_t=Kappa_t, Kappa_y=Kappa_y, Delta_t=Delta_t, Delta_y=Delta_y, Beta_t=Beta_t, Beta_y=Beta_y, r_t=r_t, r_y=r_y, S_ini=1e7, E_ini=10, p_QV=p_V)
   st <- start_time
   one_sim <- as.data.frame(x$run(0:(st+no_obs))[(st+1):(st+no_obs),])
 
   ### SUMMARY STATISTICS COMPUTED ON MODEL OUTPUT:
-  summarymodel <- sum.stats.SIMTEST(one_sim, last_date_data = "2021-01-18")
+  summarymodel <- sum.stats.SIMTEST(one_sim,last_date_data = "2021-01-18")
 
   return(summarymodel)
 }

@@ -18,12 +18,12 @@ editor_options:
   - The existing paramter estimation code produces the output of the data frame `ABC.par.out`, of dimensions = $# values to save$ X $# of parameters$ (where $# values to save$ = `n_rec` from the ABC model fitting code, which is currently set to 100; we will modify this later). Let's label `ABC.par.out` for $week(1)$ `ABC.par.out_week_1`.
   - We want to put this `ABC.par.out_week_1` data frame into a `list` that is length = $# weeks$ we're estimating the model at. Each entry of this `list` is the `ABC.par.out_week_i` data frame for $week (i)$. Call this `list` something like `week_par_all` [We will need this data frame of values for model simulations] 
   - Save the ***mean values of $week (1)$ parameters*** in a dataframe of dimensions = $# weeks$ X $# parameters$, calling it something like `week_par_mean`. Then $row(i)$ will be the mean value of $week (i)$’s estimated parameters. Thus, if we look across the length of the rows we have the mean time-series for each parameter.  [We will need this for each $week (i+1)^{th}$ parameter estimation]
-  - Save the ***standard deviations of $week (1)$ parameters*** in a matrix or data frame of dimensions $# weeks$ X $ # parameters$, calling it something like `week_par_sd`. $row(i)$ will be the $sd$ value of $week (i)$’s estimated parameters. [We will need this for each future week’s parameter estimation]
+  - Save the ***standard deviations of $week (1)$ parameters*** in a matrix or data frame of dimensions $# weeks$ X $# parameters$, calling it something like `week_par_sd`. $row(i)$ will be the $sd$ value of $week (i)$’s estimated parameters. [We will need this for each future week’s parameter estimation]
 
 ### Estimate each parameter’s first values for $week (2)$
 
 - Input: 
-  - First, we will need to read-in the mean value of $week (1)$'s parameters in the data frame `week_par_mean`. Read this in and then convert the values into the $\alpha(t)$, $\kappa(t)$, $\delta(t)$, $\mu(t)$/$R(t)$, $r(t)$ (t,y) functions over time, which are required to run `seihqdr_generator( . )` , by adapting the `fn_t_readin_code` file. **Note** that we are currently reading in the $\alpha(t)$, $\kappa(t)$, $\delta(t)$, $\mu(t)$/$R(t)$, $r(t)$ (t,y) functions in from an external .csv file. But now since we are estimating these parameters each week, we don’t need to read those in from the external file — we read them in from our data frame `week_par_mean`.
+  - First, we will need to read-in the mean value of $week (1)$'s parameters in the data frame `week_par_mean`. Read this in and then adapt the `fn_t_readin_code` file that will convert the $week (1)$'s parameters into the $\alpha(t)$, $\kappa(t)$, $\delta(t)$, $\mu(t)$/$R(t)$, $r(t)$ (t,y) functions over time, which are required to run `seihqdr_generator( . )`. (**Note** that we are currently reading in the $\alpha(t)$, $\kappa(t)$, $\delta(t)$, $\mu(t)$/$R(t)$, $r(t)$ (t,y) functions in from an external .csv file. But now since we are estimating these parameters each week, we don’t need to read those in from the external file — we read them in from our data frame `week_par_mean`.)
   - **Prior parameter distributions**: Use mean estimates from previous $week (1)$ coming from `week_par_mean` as the mean prior values for each parameter. Use the sd of the estimates from `week_par_sd` as the sd of each of the parameters prior distributions.
 
 - Output:
@@ -36,7 +36,7 @@ editor_options:
 # 2. Updating model simulation code
 
 - To simulate the model we will use the output from the `list` `week_par_all`
-- First, we’ll combine the $j^{th}$ estimated value for each parameter from each week, which we’ll take from the list `week_par_all`. To do this I suggest:
+- First, we’ll combine the $j^{th}$ (which is equal to the `n_rec`$^{th}$) estimated value for each parameter from each week, which we’ll take from the list `week_par_all`. To do this I suggest:
   - Concatenate all items in the list `week_par_all` into a single data frame, adding an additional column that saves the label of each week's ID number. This will stack a total # of list entries = $# weeks$ the model is estimated at.
   - Extract the $j^{th}$ entry of each parameter on each week to create the scenario $j$ for each parameter. So essentially here you are creating a dataframe `week_par_sim_j` of dimensions = $# weeks$ X $# parameters$ for each scenario. It will look like the structure of `week_par_mean` actually. In total, you will create `n_rec` number of simulations, or in other words, $j$ = `n_rec`. 
   - Then the model simulation code takes all of those values of those parameters across the full timeseries of the epidemic from `week_par_sim_j` and simulates the model forward over # of iterations.

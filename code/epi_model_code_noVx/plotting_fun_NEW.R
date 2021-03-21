@@ -54,16 +54,7 @@ plot.model.data.all <- function(traj.CI, data.in, init.date.data, date.offset.4p
                  "Cum. Ventilation",
                  "New Deaths",
                  "Cum. Deaths",
-                 "Recovered",
-                 "Total Vax-Effective",
-                 "New Vax-Effective",
-                 "Vax Recovered",
-                 "New Vax",
-                 "Total Vax",
-                 "R(t)",
-                 "New Vax 65+",
-                 "Total Vax 65+"
-                 )
+                 "Recovered")
 
   names(longnames) <-  c("S",
                          "I_detect_new",
@@ -80,15 +71,7 @@ plot.model.data.all <- function(traj.CI, data.in, init.date.data, date.offset.4p
                          "Vcum",
                          "D_new",
                          "D",
-                         "R_out",
-                         "Vx",
-                         "Vx_new",
-                         "R_vx",
-                         "Vx.given",
-                         "Vx.given.tot",
-                         "R0_t",
-                         "Vx.given.65",
-                         "Vx.given.65.tot"
+                         "R"
   )
 
   # longnames <- c("Susceptible",
@@ -157,8 +140,8 @@ plot.model.single <- function(traj.CI, data.in, init.date.data=NULL, time.steps.
   traj.CI <- traj.CI %>%  dplyr::filter(state.name==var.to.plot)
 
   ## Select only more recent dates
-  init.date <- init.date.data
-  init.date <- as.Date(init.date) #as.Date(lubridate::ydm(init.date))
+  #init.date <- init.date.data
+  init.date <- as.Date("2020-03-01") #as.Date(lubridate::ydm(init.date))
   startDatePlot <- init.date #- date.offset.4plot #15
   endDatePlot <- startDatePlot + time.steps.4plot #- 40  # the constant 40 because the traj are not aligned to start date
   traj.CI <- traj.CI %>% dplyr::filter(date > startDatePlot) %>% dplyr::filter(date < endDatePlot)
@@ -197,37 +180,6 @@ plot.model.single <- function(traj.CI, data.in, init.date.data=NULL, time.steps.
   traj.CI.area$variable <- NULL
   traj.CI.area <- reshape2::dcast(traj.CI.area, "date+state.name+CI~type")
 
-  # longnames <- c("Susceptible",
-  #                "Infected (Total Est.)",
-  #                "Cumul. Infected (Total Est.)",
-  #                "Infected (Obs.)",
-  #                "Cumul. Infected (Obs.)",
-  #                "In Hospital",
-  #                "New in Hospital",
-  #                "Cumul. Hospital",
-  #                "In ICU",
-  #                "Cumul. ICU",
-  #                "In Ventilation",
-  #                "Cumul. Ventilation",
-  #                "Cumul. Dead",
-  #                "New Deaths",
-  #                "Recovered")
-  # names(longnames) <- c("S",
-  #                       "Itot",
-  #                       "Itotcum",#
-  #                       "I",
-  #                       "Idetectcum",
-  #                       "Htot",
-  #                       "H_new",
-  #                       "Htotcum",
-  #                       "Q",
-  #                       "Qcum", #
-  #                       "V",
-  #                       "Vcum",
-  #                       "D",
-  #                       "D_new",
-  #                       "R")
-
   longnames <- c("Susceptible",
                  "New Obs. Infected",
                  "Current Obs. Infected",
@@ -244,9 +196,7 @@ plot.model.single <- function(traj.CI, data.in, init.date.data=NULL, time.steps.
                  "New Deaths",
                  "Cum. Deaths",
                  "Recovered",
-                 "Total Vax",
-                 "New Vax",
-                 "Vax Recovered")
+                 "R(t) Effective")
 
   names(longnames) <-  c("S",
                          "I_detect_new",
@@ -263,10 +213,8 @@ plot.model.single <- function(traj.CI, data.in, init.date.data=NULL, time.steps.
                          "Vcum",
                          "D_new",
                          "D",
-                         "R_out",
-                         "Vx",
-                         "Vx_new",
-                         "R_vx"
+                         "R",
+                         "Rt"
   )
 
   ## Colors
@@ -289,8 +237,7 @@ plot.model.single <- function(traj.CI, data.in, init.date.data=NULL, time.steps.
     "violetred1",
     "deeppink3",
     "deeppink4",
-    "grey50",
-    "grey50"
+    "cyan2"
   )
   names(cols.list) <- names(longnames)
   color.this.var <- as.character(cols.list[var.to.plot])
@@ -361,13 +308,20 @@ plot.model.single <- function(traj.CI, data.in, init.date.data=NULL, time.steps.
     ######### Create data frame with annotations
     traj.CI.date <- as.data.frame(matrix(NA, nrow=8, ncol=3))
     colnames(traj.CI.date) <- c("date","date.label","y.place")
-    traj.CI.date$date <- c(as.Date("2020-03-19"),as.Date("2020-05-08"),as.Date("2020-06-12"),as.Date("2020-07-01"),as.Date("2020-08-18"),as.Date("2020-10-31"),as.Date("2020-11-26"),as.Date("2021-01-01"))
-    traj.CI.date$date.label <- c("Stage I", "Stage II", "Stage III", "Modifications", "School Year", "Halloween", "Thanksgiving","New Years")
+    traj.CI.date$date <- c(as.Date("2020-03-19"),as.Date("2020-05-08"),as.Date("2020-06-12"),as.Date("2020-07-01"),as.Date("2020-08-18"),as.Date("2020-10-31"),as.Date("2020-11-26"),as.Date("2020-12-25"))
+    traj.CI.date$date.label <- c("Stage I", "Stage II", "Stage III", "Modifications", "School Year", "Halloween", "Thanksgiving","Christmas")
     traj.CI.date$y.place <- c(1:8)
+
     ######### Add data frame with annotations
     p <- p + geom_vline(data=traj.CI.date, aes(xintercept=as.Date(date)), linetype="dashed",colour="azure4", size=.35) +
       # annotate("text", label = traj.CI.date$date.label, x = traj.CI.date$date, y = (y.max.in/2)+(y.max.in/20)*traj.CI.date$y.place, size = 3.5, colour = "black")
       annotate("text", label = traj.CI.date$date.label, x = traj.CI.date$date, y = (y.max.in)-(y.max.in/25)*traj.CI.date$y.place, size = 3.5, colour = "black")
+
+    ######### Add horizontal line at y=1 for R(t)
+    if (vars.to.plot=="Rt"){
+      p <- p + geom_hline(yintercept = 1, linetype="dashed",color="black")
+    }
+
   }
 
   ## ADD DATA
@@ -378,7 +332,7 @@ plot.model.single <- function(traj.CI, data.in, init.date.data=NULL, time.steps.
 
   ## FINAL THEMES AND EDITING
   p <- p + theme_bw() + theme(legend.position = "top", legend.box = "horizontal")
-  p <- p + scale_x_date(limits = as.Date(c(startDatePlot,endDatePlot)), date_breaks = "2 weeks" , date_labels = "%d-%b-%y")
+  p <- p + scale_x_date(limits = as.Date(c(startDatePlot,endDatePlot)), date_breaks = "1 month" , date_labels = "%d-%b-%y")
   p <- p + theme(axis.text.x = element_text(angle = 90),
                  strip.text.x = element_text(size = 12, face = "bold"))
   #  p <- p + ylab(paste0("Number  ", as.character(longnames[var.to.plot]))) + xlab(NULL)
@@ -625,12 +579,14 @@ plot.together.capacity <- function(traj.CI=traj.CI, data.in=data.in, endDatePlot
   #################
   ## ADD DATE ANNOTATIONS
   if (!is.null(plot.annotations)){
+
     ######### Create data frame with annotations
     traj.CI.date <- as.data.frame(matrix(NA, nrow=8, ncol=3))
     colnames(traj.CI.date) <- c("date","date.label","y.place")
-    traj.CI.date$date <- c(as.Date("2020-03-19"),as.Date("2020-05-08"),as.Date("2020-06-12"),as.Date("2020-07-01"),as.Date("2020-08-18"),as.Date("2020-10-31"),as.Date("2020-11-26"),as.Date("2021-01-01"))
-    traj.CI.date$date.label <- c("Stage I", "Stage II", "Stage III", "Modifications", "School Year", "Halloween", "Thanksgiving","New Years")
+    traj.CI.date$date <- c(as.Date("2020-03-19"),as.Date("2020-05-08"),as.Date("2020-06-12"),as.Date("2020-07-01"),as.Date("2020-08-18"),as.Date("2020-10-31"),as.Date("2020-11-26"),as.Date("2020-12-25"))
+    traj.CI.date$date.label <- c("Stage I", "Stage II", "Stage III", "Modifications", "School Year", "Halloween", "Thanksgiving","Christmas")
     traj.CI.date$y.place <- c(1:8)
+
     ######### Add data frame with annotations
     p <- p + geom_vline(data=traj.CI.date, aes(xintercept=as.Date(date)), linetype="dashed",colour="azure4", size=.35) +
       # annotate("text", label = traj.CI.date$date.label, x = traj.CI.date$date, y = (y.max.in/2)+(y.max.in/20)*traj.CI.date$y.place, size = 3.5, colour = "black")
@@ -710,8 +666,7 @@ plot.param.t <- function(ABC_out=ABC_out, endDatePlot=endDatePlot){
   Kappa2.CI <- ABC.par.CI[[12]]
   Delta1.CI <- ABC.par.CI[[5]]
   Delta2.CI <- ABC.par.CI[[10]]
-  Delta3.CI <- ABC.par.CI[[15]]
-
+  Delta3.CI <- 1.1*Delta2.CI
 
   # GET ORDER OF VALUES
   start_time = round(mean(ABC.par[,3]))
@@ -770,11 +725,6 @@ plot.param.t <- function(ABC_out=ABC_out, endDatePlot=endDatePlot){
   R0.redux1.CI <- posterior.CI(R0_x_redux1,4)
   R0.redux2.CI <- posterior.CI(R0_x_redux2,4)
   R0.redux3.CI <- posterior.CI(R0_x_redux3,4)
-  R0.redux4.CI <- posterior.CI(R0_x_redux3*.75,4)
-  R0.redux5.CI <- posterior.CI(R0_x_redux3*.52,4)
-
-  assign("mu.4", 0.75*R0_redux3)
-  assign("mu.5", 0.52*R0_redux3)
 
   # GET ORDER OF VALUES
   fn_t_readin_path <- path(data.dir, "fn_t_readin.csv")
@@ -782,34 +732,95 @@ plot.param.t <- function(ABC_out=ABC_out, endDatePlot=endDatePlot){
   Beta_t_dates <- as.Date(fn_t_readin$Beta_t)
   Beta_t_dates[1] <- Beta_t_dates[1]-start_time
   Rt.t <- Beta_t_dates
-  Rt.t[length(Rt.t)] <- endDatePlot-1
+  Rt.t[length(Rt.t)] <- as.Date("2022-01-01")
 
   Rt.chr <- fn_t_readin$Beta_y
   assign("mu.0",R0.CI)
   assign("mu.1", R0.redux1.CI)
   assign("mu.2", R0.redux2.CI)
   assign("mu.3",R0.redux3.CI)
-  assign("mu.4",R0.redux4.CI)
-  assign("mu.5",R0.redux5.CI)
-
+  assign("mu.4",R0.redux3.CI)
+  assign("mu.5",R0.redux3.CI)
 
 
   # PUT IN FORMAT FOR PLOTTING
   Rt_plot <- format.4.plot(fn_t = Rt.t, fn_y_chr = Rt.chr, fn.posterior.CI=R0.CI, fn.name="Rt" )
+  Rt_plot$step = as.numeric(Rt_plot$date - as.Date("2020-03-01"))
 
-  # PLOTTING R(t)
-  traj.CI <- Rt_plot
-  vars.to.plot <- "Rt"
-  data.in <- NULL
-  y.max.in <- 4
-  y.lab.in <- "R(t)"
-  chart.title <- "R(t) (Not accounting for Herd Immunity)"
-  y.lab.in <- "Probability"
-  plot.capacity <- NULL
-  plot.annotations <- TRUE
-  R_t_plot <- plot.together.capacity(traj.CI=traj.CI, data.in=data.in, endDatePlot=endDatePlot, vars.to.plot = vars.to.plot, y.lab.in=y.lab.in, y.max.in=y.max.in, chart.title=chart.title, plot.capacity=plot.capacity, plot.annotations=plot.annotations)
-  R_t_plot
+  #################################################
+  ## Interpolate to get values for each day
+  interpolate.fn <- function(plot.in, col.idx){
+    x.vals <- plot.in[,"step"]
+    y.vals <- plot.in[,col.idx]
+    interpolate.out <- approx(x=x.vals, y=y.vals, method="constant", n=max(x.vals)-min(x.vals)+1)
+    return(as.data.frame(interpolate.out))
+  }
 
+  cols.to.get <- c(1:5)
+  n.cols <- length(cols.to.get)
+  Rt_add <- vector("list", length=n.cols)
+  for (col.idx in cols.to.get){
+    interpolate.out <- interpolate.fn(Rt_plot, col.idx)
+    Rt_add[[col.idx]] <- interpolate.out$y
+  }
+  Rt_add <- do.call(cbind, Rt_add)
+  x.vals <- Rt_plot$step
+  Rt_add <- cbind(min(x.vals):max(x.vals),Rt_add) %>% as.data.frame()
+  colnames(Rt_add) <- c("step",colnames(Rt_plot[1:5]))
+  Rt_add$date <- Rt_add$step + as.Date("2020-03-01")
+
+  #################################################
+  ## Multiply R(t) by fraction of susceptibles to get R(t)_effective
+
+  traj.S <- filter(traj.0, state.name=="S")
+
+  # Extract median Rt timeseries values
+  Rt_add.median <- Rt_add[,c("date","median")]
+  colnames(Rt_add.median) <- c("date", "Rt.median")
+
+  Rt.S <- merge(traj.S,Rt_add.median,by="date")
+
+  ###########################################################################
+  ### TESTING MULTIPLYING EACH INTERVAL
+
+  TEST <- Rt_add
+  TEST = TEST %>% mutate(low_95 = low_95* (traj.S$low_95 / 1e7)  )
+  TEST = TEST %>% mutate(low_50 = low_50* (traj.S$low_50 / 1e7)  )
+  TEST = TEST %>% mutate(median = median* (traj.S$median / 1e7)  )
+  TEST = TEST %>% mutate(up_50 = up_50* (traj.S$up_50 / 1e7)  )
+  TEST = TEST %>% mutate(up_95 = up_95* (traj.S$up_95 / 1e7)  )
+  TEST = TEST[c(1:min(nrow(traj.S),nrow(TEST))),]
+  TEST$state.name = rep("Rt", times = nrow(TEST))
+
+  ##### Rt.median * Susceptible (incl. 95th %)
+  # Rt.S$Rt_median_test <- Rt.S$Rt.median * (Rt.S$median)/1e7
+  #
+  # DT <- data.table(Rt.S)
+  # S_cols <- c(4:9)
+  #
+  # DT[, (S_cols) := lapply(.SD, function(x) x * (DT[['Rt.median']]/1e7) ), .SDcols = S_cols]
+  # tail(DT)
+  #
+  # Rt_EFF_plot <- as.data.frame(DT)
+  # Rt_EFF_plot$state.name = NULL
+  # Rt_EFF_plot$state.name = rep("Rt", times = nrow(Rt_EFF_plot))
+
+  traj.CI <- TEST
+  time.steps.4plot <- as.numeric(as.Date(endDatePlot) - as.Date("2020-03-01"))
+  var.to.plot <- "Rt"
+  R_t_plot <- plot.model.single(traj.CI, data.in=NULL, init.date.data=NULL, time.steps.4plot=time.steps.4plot, ymax=4, plot.capacity=NULL, plot.annotations=TRUE, var.to.plot=var.to.plot)
+
+  # traj.CI <- TEST
+  # vars.to.plot <- "Rt"
+  # data.in <- NULL
+  # y.max.in <- 4
+  # y.lab.in <- "R(t)"
+  # chart.title <- "Time-varying Effective Reproductive Number R(t)"
+  # y.lab.in <- "Probability"
+  # plot.capacity <- NULL
+  # plot.annotations <- TRUE
+  # R_t_plot <- plot.together.capacity(traj.CI=traj.CI, data.in=data.in, endDatePlot=endDatePlot, vars.to.plot = vars.to.plot, y.lab.in=y.lab.in, y.max.in=y.max.in, chart.title=chart.title, plot.capacity=plot.capacity, plot.annotations=plot.annotations)
+  # R_t_plot
 
   #############################################
   ## r(t)
@@ -1079,9 +1090,10 @@ plot.percent.LAC <- function(traj.CI, data.in, init.date.data=NULL, time.steps.4
     ######### Create data frame with annotations
     traj.CI.date <- as.data.frame(matrix(NA, nrow=8, ncol=3))
     colnames(traj.CI.date) <- c("date","date.label","y.place")
-    traj.CI.date$date <- c(as.Date("2020-03-19"),as.Date("2020-05-08"),as.Date("2020-06-12"),as.Date("2020-07-01"),as.Date("2020-08-18"),as.Date("2020-10-31"),as.Date("2020-11-26"),as.Date("2021-01-01"))
-    traj.CI.date$date.label <- c("Stage I", "Stage II", "Stage III", "Modifications", "School Year", "Halloween", "Thanksgiving","New Years")
+    traj.CI.date$date <- c(as.Date("2020-03-19"),as.Date("2020-05-08"),as.Date("2020-06-12"),as.Date("2020-07-01"),as.Date("2020-08-18"),as.Date("2020-10-31"),as.Date("2020-11-26"),as.Date("2020-12-25"))
+    traj.CI.date$date.label <- c("Stage I", "Stage II", "Stage III", "Modifications", "School Year", "Halloween", "Thanksgiving","Christmas")
     traj.CI.date$y.place <- c(1:8)
+
     ######### Add data frame with annotations
     p <- p + geom_vline(data=traj.CI.date, aes(xintercept=as.Date(date)), linetype="dashed",colour="azure4", size=.35) +
       # annotate("text", label = traj.CI.date$date.label, x = traj.CI.date$date, y = (y.max.in/2)+(y.max.in/20)*traj.CI.date$y.place, size = 3.5, colour = "black")

@@ -18,16 +18,15 @@ assign("mu.0",1)
 assign("mu.1", R0_redux1)
 assign("mu.2", R0_redux2)
 assign("mu.3", R0_redux3) #0.31)
-assign("mu.3", R0_redux3) #0.31)
 assign("mu.4", 0.75*R0_redux3)
-assign("mu.5", 0.7*R0_redux3)
+#assign("mu.4",(mu.3+mu.2)/2)
+assign("mu.5", 0.52*R0_redux3)
 
 mu_y <- as.vector(length(Beta_t))
 for (i in 1:length(Beta_t)){
   mu_y[i] = get(mu_y_chr[i])
 }
 R0_y <- R0*mu_y
-
 
 ## Get Beta_y as a function of R0, R0_redux, r, and Alpha
 
@@ -66,7 +65,8 @@ Beta_y<- c(
   Br.function(R0.in<-R0_y[24], r.in<-r2, Alpha.in<-Alpha2)
 )
 
-#print((paste0("Beta_y: ", length(Beta_y))))
+#print(paste0("Dimensions of Beta_y",dim(Beta_y)))
+
 ##########################################################################################
 ## Evaluate r_t from readin
 
@@ -125,71 +125,11 @@ Delta_t <- Alpha_t
 Delta_y_chr <- alpha_t_readin$Delta_y
 assign("Delta1",Delta1)
 assign("Delta2", Delta2)
-assign("Delta3", Delta3)
-#assign("Delta3", Delta2*1.3)
+assign("Delta3", Delta2*1.1)
 
 Delta_y <- as.vector(length(Alpha_t))
 for (i in 1:length(Alpha_t)){
   Delta_y[i] = get(Delta_y_chr[i])
 }
 
-##########################################################################################
-## Read in csv file with nvx_t
-vx_t_readin_path <- path(data.dir, "vx_t_readin.csv")
-vx_t_readin = as.data.frame(read.csv(vx_t_readin_path, sep=",",stringsAsFactors = FALSE))
 
-## Evaluate nvx(t) from readin
-nvx_t_dates <- as.Date(vx_t_readin$nvx_t)
-nvx_t_dates <- na.omit(nvx_t_dates)
-nvx_t_dates[1] <- nvx_t_dates[1]-start_time-vx.delay
-nvx_t <- round(as.numeric(nvx_t_dates - as.Date("2020-03-01")) + start_time)
-nvx_y <- as.numeric(na.omit(vx_t_readin$nvx_y))
-nvx_y_65 <- as.numeric(na.omit(vx_t_readin$nvx_y_65))
-
-nvx_t <- nvx_t + vx.delay
-
-## Here inputing logic check to keep the number vaccinated less than the coverage ratio and or population of LAC
-if (is.null(vx.coverage)) {vx.coverage = .8}
-
-################ whole population
-# Expand the nvx(t,y) function over each time step: nvx_y
-interpolate.out <- approx(x=nvx_t, y=nvx_y, method="constant", n = max(nvx_t)-min(nvx_t)+1)
-nvx_t.feas <- interpolate.out$x
-nvx_y.feas <- interpolate.out$y
-nvx_y.feas_cum <- cumsum(nvx_y.feas)
-
-# Implementing logic check
-for (time in 1:length(nvx_y.feas)){
-  if (nvx_y.feas_cum[time] > vx.coverage*1e7-100000 ) {
-    nvx_y.feas[time] <- 0
-  }
-}
-
-################ 65+ population
-# Expand the nvx_65(t,y) function over each time step: nvx_y_65
-interpolate.out <- approx(x=nvx_t, y=nvx_y_65, method="constant", n = max(nvx_t)-min(nvx_t)+1)
-nvx_y.feas.65 <- interpolate.out$y
-nvx_y.feas_cum.65 <- cumsum(nvx_y.feas.65)
-
-# Implementing logic check
-for (time in 1:length(nvx_y.feas.65)){
-  if (nvx_y.feas_cum.65[time] > vx.coverage*1e7-100000 ) {
-    nvx_y.feas.65[time] <- 0
-  }
-}
-
-
-
-# nvx_y_chr <- fn_t_readin$nvx_y
-# assign("vx1",vx1)
-# assign("vx2", vx1)
-# assign("vx3",vx3)
-# assign("vx4", vx4)
-#
-# nvx_y <- as.vector(length(nvx_t))
-# for (i in 1:length(nvx_t)){
-#   nvx_y[i] = get(nvx_y_chr[i])
-# }
-
-# print(nvx_t_dates)
-# print(nvx_t)

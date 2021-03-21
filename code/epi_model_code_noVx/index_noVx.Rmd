@@ -14,25 +14,10 @@ editor_options:
 
 <br>
 
-**Note: This version of the model includes vaccinations, based on the following data and assumptions:** 
+**Note**: This version of the model does not include vaccinations. As of 2/25/2021 the [percentages of the Los Angeles County population that have received vaccines](http://publichealth.lacounty.gov/media/coronavirus/vaccine/vaccine-dashboard.htm) are:
 
-As of 3/17/2021 the [number and percentage of the Los Angeles County population that have received both 1st and 2nd doses ](http://publichealth.lacounty.gov/media/coronavirus/vaccine/vaccine-dashboard.htm) is:
-
-- As of 3/17/2021, of the overall LA County population, **1,057,794** = **10%** of the population have received 1st and 2nd doses
-- As of 3/8/2021, of the population of individuals 65 and over, **815,271** = **60%** have received at least their 1st dose. 
-
-We make the following assumptions to fit our model to this data:
-
-Assumptions: General population
-- We model only full protection from the vaccine, i.e. 1st and 2nd doses of Moderna and Pfizer or 1 dose of J&J.
-- We assume 10,000 vax / day during January and February, and 20,000 vax / day from March 1 - `Sys.Date()`. This equals approximately 1,057,794 1st and 2nd doses by 3/17/21
-
-Assumptions: 65+ population
-- We estimate that by 3/8/2021, 50% of individuals 65+ that have received at least a 1st dose have received their 2nd dose, i.e. 407,636 of the 815,271 have received both their 1st and 2nd doses by 3/8/2021.
-- We assume 3,500 vax / day during January and February, and 7,000 vax / day from March 1 - `Sys.Date()`. This equals approximately 407,636 1st and 2nd doses by 3/8/21. We estimate that the same rate continues through to `Sys.Date()`.
-
-Please see the last two sub-figures in the [Model Fits](## Model fits) figure for a visual of these timelines.
-
+- **6%** 1st and 2nd doses
+- **13.6%** 1st dose only
 
 <br>
 <br>
@@ -83,9 +68,9 @@ library(DT)
 library(reshape)
 library(here)
 library(fs)
+
 library(MASS)
 library(plotly)
-
 
 lang_output <- function(x, lang) {
   cat(c(sprintf("```%s", lang), x, "```"), sep = "\n")
@@ -118,8 +103,7 @@ code.scenarios.dir=here("code/scenarios_code/")
 ```{r options, include=FALSE}
 print.output <- FALSE
 days.truncate <- 0
-endDatePlotGlobal <- as.Date("2021-03-31")
-last.date.plot.Vx <- as.Date("2021-03-31")
+endDatePlotGlobal <- as.Date("2021-03-16")
 ```
 
 
@@ -128,15 +112,10 @@ last.date.plot.Vx <- as.Date("2021-03-31")
 ```{r read-in-model-supporting-functions, include=FALSE}
 
 ###################################################################################################
-## LOAD EPIDEMIC MODELS
+## LOAD EPIDEMIC MODEL
 ## And compile the model
 path_seihqdr_model <- path(code.paper.dir, "stochastic_SEIAHQDR_Alphat_rt.R")
 seihqdr_generator <- odin::odin(path_seihqdr_model)
-
-#path_Vx_model <- path(code.paper.dir, "stochastic_SEIAHQDR_Vx_sero.R")
-path_Vx_model <- path(code.paper.dir, "stochastic_SEIAHQDR_Vx.R")
-Vx_generator <- odin::odin(path_Vx_model)
-
 
 ###################################################################################################
 ## LOAD DATA PROCESSING AND MODEL ESTIMATING FUNCTIONS
@@ -165,7 +144,7 @@ no_obs <- nrow(latest_data)
 
 <!--Model Fitting-->
 
-```{r include=FALSE}
+```{r model-fitting-code, include=FALSE}
 
 ## SOURCE PRIOR PARAMETERS
 ## Provides output in form of a prior.par list
@@ -175,15 +154,14 @@ source(prior_param_input)
 # prior.par
 
 ## SUMMARY STATISTICS COMPUTED ON DATA
-summarydata <- sum.stats.SIMTEST(latest_data, last_date_data = "2021-01-18")
+summarydata <- sum.stats.SIMTEST(latest_data,last_date_data = "2021-01-18") # function sum.stats.SIMTEST from supporting_functions
 model.R <- model.1sim.stats.no.R  # From supporting_functions
 
 ### NUMBER OF OUTPUTS
-# n_calibration = 10000
-# n_rec = 2000
-
 n_calibration = 1000
 n_rec = 100
+# n_calibration = 10000
+# n_rec = 2000
 
 ## FIT MODEL
 ABC_out<-ABC_mcmc(method="Marjoram",model=model.R,prior=prior.par,
@@ -203,23 +181,19 @@ par.vec.length <- nrow(ABC_out$param)
 
 ```{r include=FALSE}
 ###################################################################################################
-## GET VACCINE EFFICACY DELAY "vx.delay" from prior_param_input
-prior_param_input <- path(code.paper.dir, "prior_param.R")
-source(prior_param_input)
+## GET MODEL OUTPUT: traj.0
 
 ABC.out.mat <- ABC_out$param
 par.vec.length <- nrow(ABC_out$param)
 iter <- 10
-time.steps <- last.date.plot.Vx - as.Date("2020-03-01") + 200
-vars.to.plot <- vars.correct.vx.dates #vars.plus.Vx
-vx.delay <- 20
-vx.coverage <- .8
+time.steps <- 500
+vars.to.plot <- vars.plus.R
 
 ## FUNCTION MODEL.OUTPUT.TO.PLOT.SIM
 ## Calculates mean and CI of each estimated parameter & CFR/IFR
 ## Uses correlated.param.SIM
 ## Reads in Beta, Alpha, Kappa, Delta from file
-traj.0 <- model.output.to.plot.SIM(ABC.out.mat=ABC.out.mat, vx.delay=vx.delay, vx.coverage = vx.coverage, par.vec.length=par.vec.length, iter=iter, time.steps=time.steps, vars.to.plot = vars.to.plot)
+traj.0 <- model.output.to.plot.SIM(ABC.out.mat=ABC.out.mat, par.vec.length=par.vec.length, iter=iter, time.steps=time.steps, vars.to.plot = vars.to.plot)
 
 ```
 
@@ -229,13 +203,13 @@ traj.0 <- model.output.to.plot.SIM(ABC.out.mat=ABC.out.mat, vx.delay=vx.delay, v
 ###################################################################################################
 ## Plot all variables current date
 
-time.steps.4.plot = last.date.plot.Vx - as.Date("2020-03-01") +1 + 30
+time.steps.4.plot = endDatePlotGlobal - as.Date("2020-03-01")
 data.in <- latest_data
-vars.to.plot <- vars.correct.vx.dates #vars.minus.Vx
+vars.to.plot <- vars.plus.R
 
 plot.all.variables.curr.date <- 
-plot.model.data.all(traj.CI = traj.0, data.in = data.in, init.date.data = "2020-03-01", date.offset.4plot = 0,  time.steps.4plot=time.steps.4.plot,
-                    vars.to.plot=vars.to.plot)
+plot.model.data.all(traj.CI = traj.0, data.in = data.in, init.date.data = "2020-03-01", date.offset.4plot = 0, time.steps.4plot=time.steps.4.plot,
+                    vars.to.plot=vars.plus.R)
 
 if (print.output==TRUE){
   pdf(file = path(output.dir, "plot.all.variables.pdf"), width=10, height =10)
@@ -245,7 +219,6 @@ if (print.output==TRUE){
 plot.all.variables.curr.date
 
 ```
-
 
 
 ```{r include=FALSE}
@@ -373,7 +346,6 @@ var.to.plot <- "D_new"
 #ymax = 200
 plot.Dnew <- plot.model.single(traj.CI=traj.0, data.in=data.in, init.date.data="2020-03-01",time.steps.4plot=time.steps.4plot, 
                                 ymax=ymax, plot.capacity=plot.capacity, plot.annotations=plot.annotations, var.to.plot=var.to.plot)
-
 ```
 
 ## Numbers infected {.tabset}
@@ -442,14 +414,26 @@ ggplotly(plot.Q)
 plot.out.H.I[[1]]
 ```
 
+### Probabilities of severe illness
+
+- Probability of hospitalization given infection, $\alpha(t)$
+
+- Probability of ICU admission given hospitalization, $\kappa(t)$
+
+- Probability of death given ICU admission, $\delta(t)$
+
+```{r}
+Fig3.plots[[3]]
+```
+
 ## Model fits {.tabset}
 
-Summarizes the epidemic model fit with COVID-19 data for LAC from March 1 through `r as.Date("2020-03-01") + no_obs` for all disease states across multiple views: New cases, representing new daily incidence; the current number in a compartment at a specific date, relevant for understanding current prevalence rates and comparing with healthcare capacity limitations; and cumulative counts until a specific date. Observed data are plotted as black dots. The figure demonstrates that good model fits are achieved in all compartments across time.
+Summarizes the epidemic model fit with COVID-19 data for LAC from March 1 through `r as.Date("2020-03-01") + no_obs` for all disease states across multiple views: New cases, representing new daily incidence; the current number in a compartment at a specific date, relevant for understanding current prevalence rates and comparing with healthcare capacity limitations; and cumulative counts until a specific date. Observed data for available compartments with cases attributable to nursing home residents removed, are plotted as black dots. The figure demonstrates that good model fits are achieved in all compartments across time.
 
 * **New = new daily incidence**
 * **Current = current census in compartment** 
 * **Cumulative = running total over time**
-* Black dots depict COVID-19 data
+* Black dots depict COVID-19 data, with counts from outbreaks in nursing homes removed
 * The dashed line represents healthcare resource capacity limits
 
 ```{r include=FALSE}
@@ -457,20 +441,20 @@ Summarizes the epidemic model fit with COVID-19 data for LAC from March 1 throug
 ###################################################################################################
 ## Plot all variables current date
 
-time.steps.4.plot = last.date.plot.Vx - as.Date("2020-03-01") +1 
+time.steps.4.plot = Sys.Date() - as.Date("2020-03-01") +1
 data.in <- latest_data
-vars.to.plot <- vars.correct.vx.dates #vars.minus.Vx
+vars.to.plot <- vars.plus.R
 
 plot.all.variables.curr.date <- 
-plot.model.data.all(traj.CI = traj.0, data.in = data.in, init.date.data = "2020-03-01", date.offset.4plot = 0,  time.steps.4plot=time.steps.4.plot,
-                    vars.to.plot=vars.to.plot)
+plot.model.data.all(traj.CI = traj.0, data.in = data.in, init.date.data = "2020-03-01", date.offset.4plot = 0, time.steps.4plot=time.steps.4.plot,
+                    vars.to.plot=vars.plus.R)
 
 if (print.output==TRUE){
   pdf(file = path(output.dir, "plot.all.variables.pdf"), width=10, height =10)
   plot.all.variables.curr.date
   dev.off()
 }
-plot.all.variables.curr.date
+#plot.all.variables.curr.date
 
 ```
 
@@ -479,20 +463,19 @@ plot.all.variables.curr.date
 ###################################################################################################
 ## Plot all variables plus 15 days
 
-time.steps.4.plot = time.steps.4.plot + 15
+time.steps.4.plot = endDatePlotGlobal - as.Date("2020-03-01") + 15
 data.in <- latest_data
-vars.to.plot <- vars.correct.vx.dates #vars.minus.Vx
+vars.to.plot <- vars.plus.R
 
 plot.all.variables.plus.15.days <- 
-plot.model.data.all(traj.CI = traj.0, data.in = data.in, init.date.data = "2020-03-01", date.offset.4plot = 0,  time.steps.4plot=time.steps.4.plot,
-                    vars.to.plot=vars.to.plot)
+plot.model.data.all(traj.CI = traj.0, data.in = data.in, init.date.data = "2020-03-01", date.offset.4plot = 0, time.steps.4plot=time.steps.4.plot,
+                    vars.to.plot=vars.plus.R)
 
 if (print.output==TRUE){
   pdf(file = path(output.dir, "plot.all.variables.pdf"), width=10, height =10)
   plot.all.variables.plus.15.days
   dev.off()
 }
-plot.all.variables.plus.15.days
 #plot.all.variables.plus.15.days
 ```
 
@@ -516,30 +499,17 @@ plot.all.variables.plus.15.days
 
 ### Reproductive Number, $R(t)$
 
-This plot shows the time-varying Reproductive Number R(t) but NOT its effective value. This means it does NOT account for herd immunity. What is presented here is an indication of how much transmission is happening, without accounting for herd immunity.
+This plot shows the time-varying Effective Reproductive Number R(t). This accounts for the fraction of the population that is assumed to be immune to reinfection through infection-acquired immunity. It does not account for the fraction of the population that has been vaccinated, although this is currently very small and would not make a sizeable impact.
 
 ```{r}
 R_t_plot <- Fig3.plots[[1]]
-#ggplotly(R_t_plot)
-R_t_plot
+ggplotly(R_t_plot)
 ```
 
 ### Fraction of Observed Infections, $r(t)$
 
 ```{r}
 Fig3.plots[[2]]
-```
-
-### Probabilities of severe illness
-
-- Probability of hospitalization given infection, $\alpha(t)$
-
-- Probability of ICU admission given hospitalization, $\kappa(t)$
-
-- Probability of death given ICU admission, $\delta(t)$
-
-```{r}
-Fig3.plots[[3]]
 ```
 
 {-}
